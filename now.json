@@ -1,10 +1,9 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/*.ts", "use": "@now/node" }
+    { "src": "api/db.ts", "use": "@now/node" }
   ],
   "routes": [
-    { "src": "/api/users/(?<boostId>[^/]+)/storages/(?<repoId>[^/]+)/db/", "dest": "/api/db.ts?boostId=$boostId&repoId=$repoId" },
-    { "src": "/api/crashes", "dest": "/api/crashes.ts" }
+    { "src": "/api/users/(?<boostId>[^/]+)/storages/(?<repoId>[^/]+)/db", "dest": "/api/db.ts?boostId=$boostId&repoId=$repoId" }
   ]
 }
