@@ -1,34 +1,30 @@
 import ExpressPouch from "express-pouchdb"
 import { NowRequest, NowResponse } from '@now/node'
 import express from "express"
-import cors from "cors"
-import PouchDBCore from 'pouchdb-core'
-import PouchDBMemoryAdapter from 'pouchdb-adapter-memory'
-import PouchDBMapReduce from 'pouchdb-mapreduce'
-import PouchDBHttpAdapter from 'pouchdb-adapter-http'
-import PouchDBReplication from 'pouchdb-replication'
-import PouchDBFind from 'pouchdb-find'
-
-const PouchDB = PouchDBCore
-  .plugin(PouchDBMemoryAdapter)
-  .plugin(PouchDBHttpAdapter)
-  .plugin(PouchDBMapReduce)
-  .plugin(PouchDBReplication)
-  .plugin(PouchDBFind)
-
-PouchDB.defaults({
-  adapter: "memory"
-})
+import PouchDB from "./_pouch"
+import UserDB from "./userDB"
+import querystring from "querystring"
 
 const app = express()
-app.use(cors({
-  credentials: true
-}))
-app.use((req, res, next) => {
-  console.log(req.params)
-  return ExpressPouch(PouchDB)(req, res)
+
+app.use("/db/:dbname", async (req, res, next) =>{
+  const { dbname } = req.params
+  
+  try {
+    await UserDB.get(dbname)
+    next()
+  } catch(e) {
+    res.status(404).json(e)
+  }
+  
 })
 
-export default (request: NowRequest, response: NowResponse) => {
+app.use("/db", ExpressPouch(PouchDB))
+
+export default async (request: NowRequest, response: NowResponse) => {
+  const [ url, query ] = request.url != null ? request.url.split("?") : ["",""]
+  const { boostId, repoId } = querystring.parse(query)
+  const split = url.split("db")
+  request.url = `/db/${boostId}:${repoId}${split[1]}`
   return app(request, response)
 }
