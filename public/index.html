@@ -8,6 +8,61 @@
     <script src="https://cdn.jsdelivr.net/npm/pouchdb@7.1.1/dist/pouchdb.min.js"></script>
 </head>
 <body>
-    <h1>Test</h1>
+    <div>
+        <h2>Create DB</h1>
+        <label>User ID <input name="create_user" /></label>
+        <label>Repo ID <input name="create_repo" /></label>
+        <button onclick="create_db()" id="create_button">Create</button>
+    </div>
+    <div>
+        <h2>Add Doc</h1>
+        <label>User ID <input name="user" /></label>
+        <label>Repo ID <input name="repo" /></label>
+        <br>
+        <textarea name="body" id="" cols="30" rows="10"></textarea>
+        <br>
+        <button onclick="doc_put()" id="create_button">Save</button>
+    </div>
+    <div>
+        <pre id="info"></pre>
+    </div>
+    <script>
+        function create_db() {
+            const uid = document.querySelector("[name=create_user]").value
+            const rid = document.querySelector("[name=create_repo]").value
+
+            fetch(`/api/users/${uid}/storages`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: uid,
+                    repoId: rid
+                })
+            })
+            .then(r =>  r.json())
+            .then(r => alert(r))
+        }
+
+        function doc_put() {
+            const uid = document.querySelector("[name=user]").value
+            const rid = document.querySelector("[name=repo]").value
+            const body = document.querySelector("[name=body]").value
+
+            const db = new PouchDB(`${window.location.protocol}//${window.location.host}/api/users/${uid}/storages/${rid}/db`)
+            
+            db.put({
+                _id: new Date().toISOString(),
+                body: body
+            })
+            .then(() => alert("Created"))
+            .catch(() => alert("Failed"))
+
+            db.info().then(info => console.log(info))
+        }
+
+
+    </script>
 </body>
 </html>

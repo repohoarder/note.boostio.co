@@ -21,7 +21,10 @@ app.use("/db/:dbname", async (req, res, next) =>{
 
 app.use("/db", ExpressPouch(PouchDB))
 
+// PROXY TO /db/:uniqueName route, otherwise either all DBs will be named db OR requires an extra
+// route param (/api/:user/storages/:repo/db/:dbname)
 export default async (request: NowRequest, response: NowResponse) => {
+  // needs more null checks
   const [ url, query ] = request.url != null ? request.url.split("?") : ["",""]
   const { boostId, repoId } = querystring.parse(query)
   const split = url.split("db")
