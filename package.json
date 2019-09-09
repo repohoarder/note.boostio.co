@@ -4,7 +4,9 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "now dev -d",
+    "deploy": "now",
+    "test": "jest --detectOpenHandles -i -c jest.json"
   },
   "author": "",
   "license": "ISC",
@@ -34,7 +36,10 @@
     "typescript": "^3.6.2"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.18",
     "aws-sdk-mock": "^4.5.0",
-    "env-cmd": "^10.0.1"
+    "env-cmd": "^10.0.1",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.0.2"
   }
 }

@@ -12,3 +12,9 @@ Deployable with `now` or `now dev -d`
     - now doesn't seem to allow chained proxying
     - proxying within express seems to not work, rewriting url to /db/:uniqueName mostly errors
     - seems necessary to rewrite the url in the exported function and then pass to an express instance
+
+### NEW FLOW
+
+(storages/:storageId, not repo from different place)
+=> POST .../storages -> no body for now, registers and generates UUID
+=> endpoint .../storages/:storageId -> endpoing exists -> serve

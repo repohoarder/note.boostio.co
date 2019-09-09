@@ -15,18 +15,25 @@
         <button onclick="create_db()" id="create_button">Create</button>
     </div>
     <div>
-        <h2>Add Doc</h1>
+        <h2>Connect</h1>
         <label>User ID <input name="user" /></label>
         <label>Repo ID <input name="repo" /></label>
-        <br>
-        <textarea name="body" id="" cols="30" rows="10"></textarea>
-        <br>
-        <button onclick="doc_put()" id="create_button">Save</button>
+        <button onclick="connect()" id="create_button">Connect</button>
+        <p>Connected: <span id="db_info"></span></p>
     </div>
     <div>
-        <pre id="info"></pre>
+        <h2>Create</h2>
+        <input type="text" name="body" />
+        <button onclick="create_doc()">Create</button>
+    </div>
+    <div>
+        <h2>Docs</h2>
+        <button onclick="get_docs()">Get Documents</button>
+        <div id="docs"></div>
     </div>
     <script>
+        let db = null;
+
         function create_db() {
             const uid = document.querySelector("[name=create_user]").value
             const rid = document.querySelector("[name=create_repo]").value
@@ -42,24 +49,58 @@
                 })
             })
             .then(r =>  r.json())
-            .then(r => alert(r))
+            .then(r => alert(JSON.stringify(r)))
         }
 
-        function doc_put() {
+        function connect() {
             const uid = document.querySelector("[name=user]").value
             const rid = document.querySelector("[name=repo]").value
+            const url = `${window.location.protocol}//${window.location.host}/api/users/${uid}/storages/${rid}/db`
+            db = new PouchDB(url)
+            db.info()
+                .then(info => {
+                    console.log(info)
+                    document.getElementById("db_info").innerText = `${info.db_name} at ${info.host}`
+                })
+                .catch(err => console.log(err))
+        }
+
+        function get_docs() {
+            if (db == null) {
+                alert("Not connected to DB")
+                return
+            }
+            db.allDocs({
+                include_docs: true,
+            })
+                .then(data => {
+                    const ele = document.getElementById("docs")
+                    console.log(data)
+                    data.rows.map(doc => {
+                        const pre = document.createElement("pre")
+                        pre.innerText = JSON.stringify(doc, undefined, 2)
+                        ele.append(pre)
+                    })
+                })
+                .catch(console.log)
+        }
+
+        function create_doc() {
+            if (db == null) {
+                alert("Not connected to DB")
+                return
+            }
+
             const body = document.querySelector("[name=body]").value
 
-            const db = new PouchDB(`${window.location.protocol}//${window.location.host}/api/users/${uid}/storages/${rid}/db`)
-            
-            db.put({
-                _id: new Date().toISOString(),
+            db.post({
                 body: body
             })
-            .then(() => alert("Created"))
+            .then(data => {
+                alert("Created")
+                console.log(data)
+            })
             .catch(() => alert("Failed"))
-
-            db.info().then(info => console.log(info))
         }
 
 

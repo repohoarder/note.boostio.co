@@ -21,7 +21,7 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedParameters": false,
     "noImplicitReturns": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noFallthroughCasesInSwitch": true,
 
     "suppressImplicitAnyIndexErrors": true

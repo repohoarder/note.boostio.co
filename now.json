@@ -1,23 +1,24 @@
 {
   "version": 2,
+  "name": "boost-storage",
   "builds": [
     { "src": "api/db.ts", "use": "@now/node", "config": { "helpers": false } },
     { "src": "api/create.ts", "use": "@now/node" },
     { "src": "public/*", "use": "@now/static" }
   ],
-  "routes": [
-    { 
-      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<repoId>[^/]+)/db(.*)",
-      "dest": "/api/db.ts?boostId=$boostId&repoId=$repoId"
-    },
-    {
+  "routes": [{ 
+      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<repoId>[^/]+)/db(?<route>.*)",
+      "dest": "/api/db.ts?boostId=$boostId&repoId=$repoId&route=$route"
+    }, {
       "src": "/api/users/(?<boostId>[^/]+)/storages",
       "methods": ["POST"],
       "dest": "api/create.ts?boostId=$boostId"
-    },
-    {
-      "src": "(.*)",
+    }, {
+      "src": "/",
       "dest": "public/index.html"
-    }
-  ]
+    }, {
+      "src": ".*",
+      "status": 301,
+      "headers": { "Location": "/" }
+  }]
 }
