@@ -1,29 +1,18 @@
 import { NowRequest, NowResponse } from '@now/node'
-import UserDB from "./userDB"
-import RepoDBFactory from "../lib/repo_database"
+import StorageDB from "./storageDB"
+import * as PouchDBStrategy from "../lib/strategyPouchDB"
+import createStorageHandler from "./handlers/createStorage"
 
 
 export default async (req: NowRequest, res: NowResponse) => {
 
-  if (req.body == null) {
-    res.status(503).json({error: "no body"})
+  let { userId } = req.query
+  if (Array.isArray(userId)) {
+    userId = userId[0]
   }
 
-  const { userId, repoId } = req.body
-  if (userId == null || repoId == null) {
-    res.status(503).json({ error: "some error" })
-  }
-
-  const [ createDb ] = await RepoDBFactory(UserDB, "secret")
-  const [ ok, uuid ] = await createDb(userId, repoId)
-
-  if (!ok) {
-    res.status(500).json({
-      error: uuid
-    })
-  }
-
-  res.json({
-    uuid
-  })
+  const [status, response] = await createStorageHandler(PouchDBStrategy.createStorageFactory(StorageDB()), userId)
+  res
+    .status(status)
+    .json(response)
 }

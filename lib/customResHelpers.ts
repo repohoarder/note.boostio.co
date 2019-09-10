@@ -1,4 +1,4 @@
-import { NowRequest, NowResponse,NowRequestQuery } from '@now/node'
+import { NowRequest, NowResponse, NowRequestQuery } from '@now/node'
 
 // helpers taken from now-node
 // https://github.com/zeit/now/blob/canary/packages/now-node/src/helpers.ts
