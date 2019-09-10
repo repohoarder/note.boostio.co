@@ -5,8 +5,10 @@ import { IncomingMessage, ServerResponse } from "http"
 import getQuery from "../../lib/querySelector"
 import { send } from "micro"
 import PouchDB from "../../lib/MemPouch"
+import express from "express"
 
 const app = ExpressPouch(PouchDB)
+
 
 export default (strategy: Storage.GetStorageStrategy, pouch: PouchDB.Static) =>
   async (req: IncomingMessage, res: ServerResponse) => {

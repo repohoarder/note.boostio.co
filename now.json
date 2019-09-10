@@ -11,8 +11,8 @@
     { "src": "public/*", "use": "@now/static" }
   ],
   "routes": [{ 
-      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<repoId>[^/]+)/db(?<route>.*)",
-      "dest": "/api/storages.ts?boostId=$boostId&repoId=$repoId&route=$route"
+      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)/db(?<route>.*)",
+      "dest": "/api/storages.ts?boostId=$boostId&storageId=$storageId&route=$route"
     }, {
       "src": "/api/users/(?<boostId>[^/]+)/storages",
       "methods": ["POST"],

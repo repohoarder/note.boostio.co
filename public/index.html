@@ -46,6 +46,7 @@
         function connect() {
             const uid = document.querySelector("[name=user]").value
             const sid = document.querySelector("[name=repo]").value
+            console.log(sid)
             const url = `${window.location.protocol}//${window.location.host}/api/users/${uid}/storages/${sid}/db`
             db = new PouchDB(url)
             db.info()
