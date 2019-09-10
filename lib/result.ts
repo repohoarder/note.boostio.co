@@ -27,3 +27,10 @@ export function unwrapOk<T>(ok: Ok<T>): T {
 export function unwrapErr<E>(err: Err<E>): E {
   return err[1]
 }
+
+export function e_unwrap<T, E>(result: Result<T, E>): T {
+  if (isOk(result)) {
+    return unwrapOk(result)
+  } 
+  throw Error("Unwrapped an Err")
+}
