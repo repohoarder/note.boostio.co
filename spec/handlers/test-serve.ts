@@ -1,12 +1,21 @@
-import http from "http"
-import { AddressInfo } from "net"
+import http from 'http'
+import listen from 'test-listen'
+import { RequestListener } from 'http'
 
-export default (handler: any) => new Promise<string>((resolve, reject) => {
-  const srv = http.createServer(handler)
-  srv.on('error', reject)
+export type TestHandlerCallback = (url: string) => void
 
-  srv.listen(() => {
-    const {port} = srv.address() as AddressInfo
-    resolve(`http://localhost:${port}`)
-  })
-})
+export async function testHandler(
+  handler: RequestListener,
+  testCallback: TestHandlerCallback
+): Promise<void> {
+  const server = new http.Server(handler)
+
+  const url = await listen(server)
+  try {
+    await testCallback(url)
+  } catch (error) {
+    throw error
+  } finally {
+    server.close()
+  }
+}
