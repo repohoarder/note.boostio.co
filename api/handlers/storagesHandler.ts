@@ -15,7 +15,13 @@ export default (strategy: Storage.GetStorageStrategy, pouch: PouchDB.Static) =>
     const getStorage = Storage.getStorage(strategy)
 
     // can be undefined?
-    let { storageId, route } = getQuery(req)
+    let { storageId, route, top } = getQuery(req)
+
+    if (top != null) {
+      req.url = "/"
+      app(req, res)
+    }
+
     storageId = Array.isArray(storageId) ? storageId[0] : storageId
     route = Array.isArray(route) ? route[0] : route
 

@@ -31,7 +31,9 @@
         <div id="docs"></div>
     </div>
     <script>
-        let db = null;
+        let db = new PouchDB('local-test');
+        let remote  = null
+        let sync = null
 
         function create_db() {
             const uid = document.querySelector("[name=create_user]").value
@@ -46,28 +48,29 @@
         function connect() {
             const uid = document.querySelector("[name=user]").value
             const sid = document.querySelector("[name=repo]").value
-            console.log(sid)
             const url = `${window.location.protocol}//${window.location.host}/api/users/${uid}/storages/${sid}/db`
-            db = new PouchDB(url)
-            db.info()
-                .then(info => {
-                    console.log(info)
-                    document.getElementById("db_info").innerText = `${info.db_name} at ${info.host}`
-                })
-                .catch(err => console.log(err))
+            if (sync != null) {
+                sync.cancel()
+            }
+            remote = new PouchDB(url)
+            sync = db.sync(remote, {
+                live: true,
+                retry: true
+            }).on('change', console.log)
         }
 
         function get_docs() {
-            if (db == null) {
+            if (remote == null) {
                 alert("Not connected to DB")
                 return
             }
-            db.allDocs({
+            remote.allDocs({
                 include_docs: true,
             })
                 .then(data => {
                     const ele = document.getElementById("docs")
                     console.log(data)
+                    ele.innerHTML = ""
                     data.rows.map(doc => {
                         const pre = document.createElement("pre")
                         pre.innerText = JSON.stringify(doc, undefined, 2)

@@ -20,6 +20,9 @@ function createEndpoint(id: string = "storageId"): RequestListener {
       }
     }
     req.url = `/?storageId=${id}&route=/${route}`
+    if (id === "sync-test") {
+      console.log(req.method, req.url)
+    }
     storagesHandlerFactory(mockStrategy, MemPouchDB)(req, res)
   }
 }
@@ -46,15 +49,21 @@ describe("storages endpoint", () => {
   })
 
   test("sync", async () => {
-    await testHandler(createEndpoint(), async url => {
+    await testHandler(createEndpoint("sync-test"), async url => {
       const local_db = new MemPouchDB("local")
       const remote_db = new MemPouchDB(url, { adapter: "http" })
-      local_db.sync(remote_db, {live: true}, (err, resp) => {
-        console.log(err, resp)
-      })
+     
+      const mockCallback = jest.fn((...args) => console.log(args))
 
-      await local_db.put({ _id: "docId", body: "body" })
-      expect("").toBe("")
+      const sync = local_db.sync(remote_db, {
+        retry: true,
+        live: true
+      }, mockCallback)
+        .on('change', mockCallback)
+        .on('error', mockCallback)
+
+      const put = await local_db.put({ _id: "doc2", body: "body" })
+      expect(mockCallback).toBeCalled()
     })
   })
 

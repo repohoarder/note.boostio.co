@@ -14,6 +14,9 @@
       "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)/db(?<route>.*)",
       "dest": "/api/storages.ts?boostId=$boostId&storageId=$storageId&route=$route"
     }, {
+      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)/",
+      "dest": "/api/storages.ts?boostId=$boostId&storageId=$storageId&top=true"
+    }, {
       "src": "/api/users/(?<boostId>[^/]+)/storages",
       "methods": ["POST"],
       "dest": "api/create.ts?boostId=$boostId"
