@@ -9,37 +9,24 @@ import { testHandler } from './test-serve'
 jest.useFakeTimers()
 
 function createEndpoint(id: string = "storageId"): RequestListener {
-  return (req, res) => {
-    const mockStrategy: GetStorageStrategy = async id => Ok({ _id: id, user: "userId" })
-    let route = ""
-    if (req.url != null) {
-      const url = parse(req.url)
-      route = url.pathname != null && url.pathname !== "//" ? url.pathname : ""
-      while (route.startsWith("/")) {
-        route = route.substr(1)
-      }
-    }
-    req.url = `/?storageId=${id}&route=/${route}`
-    if (id === "sync-test") {
-      console.log(req.method, req.url)
-    }
-    storagesHandlerFactory(mockStrategy, MemPouchDB)(req, res)
-  }
+  const mockStrategy: GetStorageStrategy = async id => Ok({ _id: id, user: "userId" })
+  return storagesHandlerFactory(mockStrategy, MemPouchDB)
 }
 
 describe("storages endpoint", () => {
 
   test("opens database", async () => {
     await testHandler(createEndpoint(), async url => {
-      const db = new MemPouchDB(url, { adapter: 'http' })
+      const storageId = "storageId"
+      const db = new MemPouchDB(`${url}/api/users/1/storages/${storageId}/db`, { adapter: 'http' })
       const info = await db.info()
-      expect(info.db_name).toEqual("storageId")
+      expect(info.db_name).toEqual(storageId)
     })
   })
 
   test("puts & gets document", async () => {
     await testHandler(createEndpoint(), async url => {
-      const db = new MemPouchDB(url, { adapter: 'http' })
+      const db = new MemPouchDB(`${url}/api/users/1/storages/2/db`, { adapter: 'http' })
       const created = await db.put({ _id: "docId", body: "body" })
       expect(created.ok).toBe(true)
 
@@ -48,10 +35,16 @@ describe("storages endpoint", () => {
     })
   })
 
-  test("sync", async () => {
+  test("_rev_docs", async () => {
+    await testHandler(createEndpoint("rev-docs-test"), async url => {
+
+    })
+  })
+
+  test("sync", async done => {
     await testHandler(createEndpoint("sync-test"), async url => {
       const local_db = new MemPouchDB("local")
-      const remote_db = new MemPouchDB(url, { adapter: "http" })
+      const remote_db = new MemPouchDB(`${url}/api/users/1/storages/2/db`, { adapter: "http" })
      
       const mockCallback = jest.fn((...args) => console.log(args))
 
@@ -59,10 +52,13 @@ describe("storages endpoint", () => {
         retry: true,
         live: true
       }, mockCallback)
-        .on('change', mockCallback)
+        .on('change', () => done())
         .on('error', mockCallback)
 
-      const put = await local_db.put({ _id: "doc2", body: "body" })
+      const put = await remote_db.put({ _id: "doc2", body: "body" })
+      console.log(put)
+      console.log(await local_db.get(put.id))
+      sync.cancel()
       expect(mockCallback).toBeCalled()
     })
   })

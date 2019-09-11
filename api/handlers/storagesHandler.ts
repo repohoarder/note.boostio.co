@@ -5,33 +5,42 @@ import { IncomingMessage, ServerResponse } from "http"
 import getQuery from "../../lib/querySelector"
 import { send } from "micro"
 import PouchDB from "../../lib/MemPouch"
-import express from "express"
 
 const app = ExpressPouch(PouchDB)
 
+interface DBInfo {
+  userId?: string 
+  storageId?: string,
+  command?: string
+}
 
 export default (strategy: Storage.GetStorageStrategy, pouch: PouchDB.Static) =>
   async (req: IncomingMessage, res: ServerResponse) => {
     const getStorage = Storage.getStorage(strategy)
-
+    //console.log("\nRecieved ---\n", req.url, "\n")
     // can be undefined?
-    let { storageId, route, top } = getQuery(req)
+    let { storageId, command } = parseUrl(req.url || "")
 
-    if (top != null) {
-      req.url = "/"
-      app(req, res)
-    }
-
-    storageId = Array.isArray(storageId) ? storageId[0] : storageId
-    route = Array.isArray(route) ? route[0] : route
-
-    const result = await getStorage(storageId)
+    const result = await getStorage(storageId || "")
     if (isErr(result)) {
       send(res, 404, {error: unwrapErr(result)})
+      return
     } else {
       // memoized based on pouch?
       const storage = unwrapOk(result)
-      req.url = `/${storage._id}${route}`
+      const prev = req.url
+      req.url = storageId != null ? `/${storage._id}${command}` : "/"
+      
+      console.log("Rewrite ---\n", prev, "\n", req.url)
       app(req, res)
   }
+}
+
+const regex = new RegExp(/\/api\/users\/(?<userId>[^/]+)\/storages\/(?<storageId>[^/]+)\/db(?<command>.*)/);
+function parseUrl(url: string): DBInfo {
+  const exec = regex.exec(url)
+  if (exec == null || exec.groups == null) {
+    return {}
+  }
+  return exec.groups
 }

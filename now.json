@@ -12,7 +12,7 @@
   ],
   "routes": [{ 
       "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)/db(?<route>.*)",
-      "dest": "/api/storages.ts?boostId=$boostId&storageId=$storageId&route=$route"
+      "dest": "/api/storages.ts"
     }, {
       "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)/",
       "dest": "/api/storages.ts?boostId=$boostId&storageId=$storageId&top=true"
