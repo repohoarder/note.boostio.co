@@ -7,25 +7,17 @@
       "use": "@now/node",
       "config": { "helpers": false }
     },
-    { "src": "api/create.ts", "use": "@now/node" },
-    { "src": "public/*", "use": "@now/static" }
+    { "src": "api/create.ts", "use": "@now/node" }
   ],
   "routes": [{ 
-      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)/db(?<route>.*)",
+      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)[/db]?(?<route>.*)",
       "dest": "/api/storages.ts"
-    }, {
-      "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)/",
-      "dest": "/api/storages.ts?boostId=$boostId&storageId=$storageId&top=true"
-    }, {
+    },{
       "src": "/api/users/(?<boostId>[^/]+)/storages",
       "methods": ["POST"],
       "dest": "api/create.ts?boostId=$boostId"
-    }, {
-      "src": "/",
-      "dest": "public/index.html"
-    }, {
+    },{
       "src": ".*",
-      "status": 301,
-      "headers": { "Location": "/" }
+      "status": 404
   }]
 }

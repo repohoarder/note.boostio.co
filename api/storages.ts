@@ -2,17 +2,27 @@ import PouchDB from "../lib/MemPouch"
 import StorageDB from "./storageDB"
 import * as PouchDBStrategy from "../lib/strategyPouchDB"
 import { IncomingMessage, ServerResponse } from "http"
-import storagesHandlerFactory from "./handlers/storagesHandler"
+import storagesHandlerFactory from "./handlers/expressPouchHandler"
+import proxyHandler from "./handlers/proxyHandler"
+import { send } from "micro"
 
+const host = process.env.PROXY_HOST
+const user = process.env.PROXY_USER
+const pass = process.env.PROXY_PASSWORD
 
-// PROXY TO /db/:uniqueName route, otherwise either all DBs will be named db OR requires an extra
-// route param (/api/:user/storages/:repo/db/:dbname)
 export default async (req: IncomingMessage, res: ServerResponse) => {
-  const app = storagesHandlerFactory(PouchDBStrategy.getStorageFactory(StorageDB()), PouchDB)
-  app(req, res)
+
+  if (host == null || user == null || pass == null) {
+    send(res, 500)
+    return
+  }
+
+  const handler = proxyHandler(
+    PouchDBStrategy.getStorageFactory(StorageDB()),
+    {
+      host,
+      auth: `${user}:${pass}`
+    }
+    )
+  handler(req, res)
 }
-
-
-
-
-

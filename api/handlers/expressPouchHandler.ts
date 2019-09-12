@@ -14,7 +14,7 @@ interface DBInfo {
   command?: string
 }
 
-export default (strategy: Storage.GetStorageStrategy, pouch: PouchDB.Static) =>
+export default (strategy: Storage.GetStorageStrategy) =>
   async (req: IncomingMessage, res: ServerResponse) => {
     const getStorage = Storage.getStorage(strategy)
     //console.log("\nRecieved ---\n", req.url, "\n")
@@ -28,10 +28,7 @@ export default (strategy: Storage.GetStorageStrategy, pouch: PouchDB.Static) =>
     } else {
       // memoized based on pouch?
       const storage = unwrapOk(result)
-      const prev = req.url
       req.url = storageId != null ? `/${storage._id}${command}` : "/"
-      
-      console.log("Rewrite ---\n", prev, "\n", req.url)
       app(req, res)
   }
 }
