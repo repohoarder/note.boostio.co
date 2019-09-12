@@ -76,6 +76,8 @@ describe("storages endpoint", () => {
      
       let putId = "none"
       const result = await new Promise<PouchDB.Replication.SyncResult<any>>(async resolve => {
+
+        // enable syncing to remote_db
         const syncHandler = local_db.sync(remote_db, { live: true })
           .on('paused', () => {
             syncHandler.cancel()
@@ -89,10 +91,14 @@ describe("storages endpoint", () => {
             syncHandler.cancel()
             resolve(info)
           })
+        
+        // while live sync enabled push to local database
         putId = (await local_db.post({ body: "body" })).id
       })
       
+      // assert correct action occured
       expect(result.direction).toEqual("push")
+      // assert change was pushed to local database
       const from_remote = await remote_db.get(putId)
       expect(from_remote._id).toEqual(putId)
     })
@@ -121,7 +127,7 @@ describe("storages endpoint", () => {
           })
         putId = (await remote_db.post({ body: "body" })).id
       })
-      // remote db push aswell?
+      
       expect(result.direction).toEqual("pull")
       const from_local = await local_db.get(putId)
       expect(from_local._id).toEqual(putId)
