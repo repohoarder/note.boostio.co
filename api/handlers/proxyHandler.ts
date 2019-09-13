@@ -3,6 +3,8 @@ import { IncomingMessage, ServerResponse } from "http";
 import { send } from "micro"
 import { isErr, unwrapErr, unwrapOk } from "../../lib/result"
 import httpProxy from "http-proxy"
+import path from "path"
+import fs from "fs"
 
 interface DBInfo {
   userId?: string 
@@ -46,11 +48,11 @@ export default (strategy: Storage.GetStorageStrategy, { host, protocol = "http",
   }
 }
 
-const regex = new RegExp(/\/api\/users\/(?<userId>[^/]+)\/storages\/(?<storageId>[^/]+)\/db(?<command>.*)/);
+const regex = new RegExp(/\/api\/users\/([^/]+)\/storages\/([^/]+)\/db(.*)/);
 function parseUrl(url: string): DBInfo {
   const exec = regex.exec(url)
-  if (exec == null || exec.groups == null) {
+  if (exec == null) {
     return {}
   }
-  return exec.groups
+  return { storageId: exec[2], userId: exec[1], command: exec[3]  }
 }

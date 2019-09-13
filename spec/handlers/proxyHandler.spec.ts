@@ -14,7 +14,6 @@ function createEndpoint(): RequestListener {
     host: "localhost",
     port: "3254",
   })
-  //return expressPouchDBHandler(mockStrategy)
 }
 
 function TestDB(url: string, storageId: string) {
@@ -22,7 +21,7 @@ function TestDB(url: string, storageId: string) {
   return db
 }
 
-describe("storages endpoint", () => {
+describe("proxy handler", () => {
 
   beforeAll(async () => {
     await MockCouch.create(3254)

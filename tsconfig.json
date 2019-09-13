@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*.ts", "specs/**/*.ts", "types/type.d.ts", "api/[db].ts"],
+  "include": ["src/**/*.ts", "specs/**/*.ts", "types/type.d.ts", "api/**/*.ts"],
   "compilerOptions": {
     "target": "es2018",
     "lib": ["es2018"],

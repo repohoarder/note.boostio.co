@@ -2,11 +2,9 @@ import ExpressPouch from "express-pouchdb"
 import * as Storage from "../../domain/storage"
 import { isErr, unwrapErr, unwrapOk } from "../../lib/result"
 import { IncomingMessage, ServerResponse } from "http"
-import getQuery from "../../lib/querySelector"
 import { send } from "micro"
-import PouchDB from "../../lib/MemPouch"
+import MemPouchDB from "../../lib/MemPouch"
 
-const app = ExpressPouch(PouchDB)
 
 interface DBInfo {
   userId?: string 
@@ -14,30 +12,70 @@ interface DBInfo {
   command?: string
 }
 
-export default (strategy: Storage.GetStorageStrategy) =>
-  async (req: IncomingMessage, res: ServerResponse) => {
-    const getStorage = Storage.getStorage(strategy)
-    //console.log("\nRecieved ---\n", req.url, "\n")
-    // can be undefined?
-    let { storageId, command } = parseUrl(req.url || "")
 
-    const result = await getStorage(storageId || "")
-    if (isErr(result)) {
-      send(res, 404, {error: unwrapErr(result)})
-      return
-    } else {
-      // memoized based on pouch?
-      const storage = unwrapOk(result)
-      req.url = storageId != null ? `/${storage._id}${command}` : "/"
-      app(req, res)
+const RemotePouch = MemPouchDB.defaults({
+  prefix: `https://${process.env.PROXY_HOST}`,
+  auth: {
+    username: process.env.PROXY_USER,
+    password: process.env.PROXY_PASSWORD
+  },
+  adapter: "https"
+})
+
+
+// Has to be defined outside or replicator already set errors are thrown
+const app = ExpressPouch(RemotePouch, {
+  logPath: "/tmp/log.txt"
+})
+
+interface RemoteConfig {
+  host: string
+  auth?: {
+    username: string,
+    password: string
   }
 }
 
-const regex = new RegExp(/\/api\/users\/(?<userId>[^/]+)\/storages\/(?<storageId>[^/]+)\/db(?<command>.*)/);
+export default (strategy: Storage.GetStorageStrategy, remote?: RemoteConfig) => {
+
+  // if a remote DB is set, use it. otherwise use memory
+  if (remote != null) {
+    // const prefix = remote.host.startsWith('https://') ? remote.host : `https://${remote.host}`
+    // app.setPouchDB(MemPouchDB.defaults({
+    //   prefix,
+    //   auth: remote.auth,
+    //   adapter: "https"
+    // }))
+  }
+
+  return async (req: IncomingMessage, res: ServerResponse) => {
+      const getStorage = Storage.getStorage(strategy)
+      //console.log("\nRecieved ---\n", req.url, "\n")
+      // can be undefined?
+      let { storageId, command } = parseUrl(req.url || "")
+
+      const result = await getStorage(storageId || "")
+      if (isErr(result)) {
+        send(res, 404, {error: unwrapErr(result)})
+        return
+      } else {
+        // memoized based on pouch?
+        const storage = unwrapOk(result)
+        try {
+          req.url = storageId != null ? `/${storage._id}${command}` : "/"
+          app(req, res)
+        } catch (error) {
+          send(res, 500, { error: error.message })
+        }
+    }
+  }
+}
+
+const regex = new RegExp(/\/api\/users\/([^/]+)\/storages\/([^/]+)\/db(.*)/);
 function parseUrl(url: string): DBInfo {
   const exec = regex.exec(url)
-  if (exec == null || exec.groups == null) {
+  if (exec == null) {
     return {}
   }
-  return exec.groups
+  return { storageId: exec[2], userId: exec[1], command: exec[3]  }
 }

@@ -1,6 +1,14 @@
 {
   "version": 2,
   "name": "boost-storage",
+  "env": {
+    "STORAGE_DB_USER": "@storage-db-user",
+    "STORAGE_DB_PASS": "@storage-db-pass",
+    "STORAGE_DB_NAME": "@storage-db-name",
+    "PROXY_HOST": "@proxy-host",
+    "PROXY_USER": "@proxy-user",
+    "PROXY_PASSWORD": "@proxy-password"
+  },
   "builds": [
     { 
       "src": "api/storages.ts",
@@ -10,6 +18,12 @@
     { "src": "api/create.ts", "use": "@now/node" }
   ],
   "routes": [{ 
+      "headers": {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept",
+          "Access-Control-Allow-Credentials": "true"
+      },
       "src": "/api/users/(?<boostId>[^/]+)/storages/(?<storageId>[^/]+)[/db]?(?<route>.*)",
       "dest": "/api/storages.ts"
     },{

@@ -6,6 +6,8 @@ import { Ok } from '../../lib/result'
 import { testHandler } from './test-serve'
 
 jest.useFakeTimers()
+//jest.setTimeout(30000)
+
 
 function createEndpoint(): RequestListener {
   const mockStrategy: GetStorageStrategy = async id => Ok({ _id: id, user: "userId" })
@@ -17,7 +19,7 @@ function TestDB(url: string, storageId: string) {
   return db
 }
 
-describe("storages endpoint", () => {
+describe("express-pouch handler", () => {
 
   test("it creates database", async () => {
     await testHandler(createEndpoint(), async url => {
@@ -100,7 +102,7 @@ describe("storages endpoint", () => {
           })
           .on('error', () => {
             syncHandler.cancel()
-            throw new Error("Syn error")
+            throw new Error("Sync error")
           })
           .on('change', info => {
             syncHandler.cancel()
