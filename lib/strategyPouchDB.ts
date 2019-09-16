@@ -35,7 +35,7 @@ export const createStorageFactory: Factory<[PouchDB.Database<Storage>], CreateSt
 
 export const getStorageFactory: Factory<[PouchDB.Database<Storage>],  GetStorageStrategy> = db => async id => {
   
-  // got back to Result<Maybe<UID>, string> check error for missing and responsd None
+  // got back to Result<Maybe<UID>, string> check error for missing and respond None?
   try {
     const found = await db.get(id)
     return Ok(found)

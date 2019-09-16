@@ -2,7 +2,7 @@ import PouchDB from "../lib/MemPouch"
 import StorageDB from "./storageDB"
 import * as PouchDBStrategy from "../lib/strategyPouchDB"
 import { IncomingMessage, ServerResponse } from "http"
-import storagesHandlerFactory from "./handlers/expressPouchHandler"
+import expressPouchHandlerFactory from "./handlers/expressPouchHandler"
 import proxyHandler from "./handlers/proxyHandler"
 import { send } from "micro"
 
@@ -18,7 +18,7 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
     return
   }
 
-  const handler = storagesHandlerFactory(
+  const handler = expressPouchHandlerFactory(
     PouchDBStrategy.getStorageFactory(StorageDB()),
     { host, auth: { username: user, password: pass } }
   )

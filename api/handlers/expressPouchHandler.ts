@@ -47,11 +47,10 @@ export default (strategy: Storage.GetStorageStrategy, remote?: RemoteConfig) => 
   if (remote != null) {
 
   }
-
+  
   return async (req: IncomingMessage, res: ServerResponse) => {
       const getStorage = Storage.getStorage(strategy)
-      //console.log("\nRecieved ---\n", req.url, "\n")
-      // can be undefined?
+      
       let { storageId, command } = parseUrl(req.url || "")
 
       const result = await getStorage(storageId || "")
