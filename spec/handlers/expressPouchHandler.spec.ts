@@ -5,7 +5,7 @@ import { GetStorageStrategy } from '../../domain/storage'
 import { Ok } from '../../lib/result'
 import { testHandler } from './test-serve'
 
-process.on('warning', e => console.warn(e.stack));
+// Move to test server style like proxy to test http-pouchdb usage not just memory
 
 jest.useFakeTimers()
 jest.setTimeout(30000)
@@ -114,7 +114,7 @@ describe("express-pouch handler", () => {
           })
         putId = (await remote_db.post({ body: "body" })).id
       })
-      // remote db push aswell?
+      
       expect(result.direction).toEqual("pull")
       const from_local = await local_db.get(putId)
       expect(from_local._id).toEqual(putId)
