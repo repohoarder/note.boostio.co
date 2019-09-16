@@ -9,8 +9,4 @@ const PouchDB = PouchDBCore
   .plugin(PouchDBHttpAdapter)
   
 
-PouchDB.defaults({
-  adapter: "memory",
-})
-
 export default PouchDB

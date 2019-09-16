@@ -1,17 +1,21 @@
 import { RequestListener } from 'http'
 import expressPouchDBHandler from '../../api/handlers/expressPouchHandler'
-import MemPouchDB from '../../lib/MemPouch'
+import PouchDB from '../../lib/MemPouch'
 import { GetStorageStrategy } from '../../domain/storage'
 import { Ok } from '../../lib/result'
 import { testHandler } from './test-serve'
 
+process.on('warning', e => console.warn(e.stack));
+
 jest.useFakeTimers()
-//jest.setTimeout(30000)
+jest.setTimeout(30000)
+
+const MemPouchDB = PouchDB.defaults({ adapter: "memory" })
 
 
 function createEndpoint(): RequestListener {
   const mockStrategy: GetStorageStrategy = async id => Ok({ _id: id, user: "userId" })
-  return expressPouchDBHandler(mockStrategy)
+  return expressPouchDBHandler(mockStrategy, { host: "egs" })
 }
 
 function TestDB(url: string, storageId: string) {
@@ -72,7 +76,7 @@ describe("express-pouch handler", () => {
           })
           .on('error', () => {
             syncHandler.cancel()
-            throw new Error("Syn error")
+            throw new Error("Sync error")
           })
           .on('change', info => {
             syncHandler.cancel()

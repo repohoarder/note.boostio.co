@@ -3,7 +3,8 @@ import * as Storage from "../../domain/storage"
 import { isErr, unwrapErr, unwrapOk } from "../../lib/result"
 import { IncomingMessage, ServerResponse } from "http"
 import { send } from "micro"
-import MemPouchDB from "../../lib/MemPouch"
+import PouchDB from "../../lib/MemPouch"
+import HttpPouchDB from "http-pouchdb"
 
 
 interface DBInfo {
@@ -12,20 +13,24 @@ interface DBInfo {
   command?: string
 }
 
-
-const RemotePouch = MemPouchDB.defaults({
-  prefix: `https://${process.env.PROXY_HOST}`,
+const RemotePouch = HttpPouchDB(
+  PouchDB,
+ `https://${process.env.PROXY_HOST}/`,
+ {
   auth: {
     username: process.env.PROXY_USER,
     password: process.env.PROXY_PASSWORD
   },
-  adapter: "https"
+  adapter: "https",
 })
 
-
 // Has to be defined outside or replicator already set errors are thrown
+// memoized style function?
 const app = ExpressPouch(RemotePouch, {
-  logPath: "/tmp/log.txt"
+  logPath: "/tmp/log.txt",
+  overrideMode: {
+    exclude: ['routes/security']
+  },
 })
 
 interface RemoteConfig {
@@ -40,12 +45,7 @@ export default (strategy: Storage.GetStorageStrategy, remote?: RemoteConfig) => 
 
   // if a remote DB is set, use it. otherwise use memory
   if (remote != null) {
-    // const prefix = remote.host.startsWith('https://') ? remote.host : `https://${remote.host}`
-    // app.setPouchDB(MemPouchDB.defaults({
-    //   prefix,
-    //   auth: remote.auth,
-    //   adapter: "https"
-    // }))
+
   }
 
   return async (req: IncomingMessage, res: ServerResponse) => {
