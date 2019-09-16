@@ -5,30 +5,16 @@ import { IncomingMessage, ServerResponse } from "http"
 import { send } from "micro"
 import PouchDB from "../../lib/MemPouch"
 import HttpPouchDB from "http-pouchdb"
+import urlParser from "../../lib/requestInfoParser"
 
-
-interface DBInfo {
-  userId?: string 
-  storageId?: string,
-  command?: string
-}
-
-const RemotePouch = HttpPouchDB(
-  PouchDB,
- `https://${process.env.PROXY_HOST}/`,
- {
-  auth: {
-    username: process.env.PROXY_USER,
-    password: process.env.PROXY_PASSWORD
-  },
-  adapter: "https",
-})
 
 // Has to be defined outside or replicator already set errors are thrown
-// memoized style function?
-const app = ExpressPouch(RemotePouch, {
+const app = ExpressPouch(PouchDB, {
   logPath: "/tmp/log.txt",
   overrideMode: {
+    // NECESSARY - Disables _security routes
+    // auto security routes run requests before http database name is resolved causing
+    // 'calling method x on null' errors due to wonky URL parsing.
     exclude: ['routes/security']
   },
 })
@@ -43,22 +29,33 @@ interface RemoteConfig {
 
 export default (strategy: Storage.GetStorageStrategy, remote?: RemoteConfig) => {
 
-  // if a remote DB is set, use it. otherwise use memory
+  // if a remote DB settings, use remote, otherwise use memory
+  // possible memory leak on listeners?
   if (remote != null) {
-
+    const RemotePouch = HttpPouchDB(
+      PouchDB,
+     `https://${remote.host}/`,
+     {
+      auth: remote.auth,
+      adapter: "https",
+    })
+    app.setPouchDB(RemotePouch)
   }
   
   return async (req: IncomingMessage, res: ServerResponse) => {
       const getStorage = Storage.getStorage(strategy)
       
-      let { storageId, command } = parseUrl(req.url || "")
+      let { storageId, command } = urlParser(req.url || "")
+
+      if (storageId == null) {
+        send(res, 404, { error: "Storage ID must be present" })
+      }
 
       const result = await getStorage(storageId || "")
       if (isErr(result)) {
         send(res, 404, {error: unwrapErr(result)})
         return
       } else {
-        // memoized based on pouch?
         const storage = unwrapOk(result)
         try {
           req.url = storageId != null ? `/${storage._id}${command}` : "/"
@@ -70,11 +67,3 @@ export default (strategy: Storage.GetStorageStrategy, remote?: RemoteConfig) => 
   }
 }
 
-const regex = new RegExp(/\/api\/users\/([^/]+)\/storages\/([^/]+)\/db(.*)/);
-function parseUrl(url: string): DBInfo {
-  const exec = regex.exec(url)
-  if (exec == null) {
-    return {}
-  }
-  return { storageId: exec[2], userId: exec[1], command: exec[3]  }
-}

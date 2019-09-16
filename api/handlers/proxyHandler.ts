@@ -3,8 +3,7 @@ import { IncomingMessage, ServerResponse } from "http";
 import { send } from "micro"
 import { isErr, unwrapErr, unwrapOk } from "../../lib/result"
 import httpProxy from "http-proxy"
-import path from "path"
-import fs from "fs"
+import urlParser from "../../lib/requestInfoParser"
 
 interface DBInfo {
   userId?: string 
@@ -32,7 +31,7 @@ export default (strategy: Storage.GetStorageStrategy, { host, protocol = "http",
   return async (req: IncomingMessage, res: ServerResponse) => {
     const getStorage = Storage.getStorage(strategy)
 
-    let { storageId, command } = parseUrl(req.url || "")
+    let { storageId, command } = urlParser(req.url || "")
     const result = await getStorage(storageId || "")
     if (isErr(result)) {
       send(res, 404, {error: unwrapErr(result)})
@@ -46,13 +45,4 @@ export default (strategy: Storage.GetStorageStrategy, { host, protocol = "http",
       }
     }
   }
-}
-
-const regex = new RegExp(/\/api\/users\/([^/]+)\/storages\/([^/]+)\/db(.*)/);
-function parseUrl(url: string): DBInfo {
-  const exec = regex.exec(url)
-  if (exec == null) {
-    return {}
-  }
-  return { storageId: exec[2], userId: exec[1], command: exec[3]  }
 }

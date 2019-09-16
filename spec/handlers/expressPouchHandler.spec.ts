@@ -15,7 +15,7 @@ const MemPouchDB = PouchDB.defaults({ adapter: "memory" })
 
 function createEndpoint(): RequestListener {
   const mockStrategy: GetStorageStrategy = async id => Ok({ _id: id, user: "userId" })
-  return expressPouchDBHandler(mockStrategy, { host: "egs" })
+  return expressPouchDBHandler(mockStrategy)
 }
 
 function TestDB(url: string, storageId: string) {
